@@ -1,0 +1,3 @@
+远程执行sudo命令，需要带上ssh的ml参数-t,否则报错
+sshpass -p XXXX ssh -t -p 22000 lilongqian@10.13.113.202 "sudo du -sb /home/mysql_data/datarecv"
+
