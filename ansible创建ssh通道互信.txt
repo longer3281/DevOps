@@ -1,0 +1,25 @@
+
+1)在本地机器执行
+ansible dbs -e 'ansible_host_key_checking=False' -m command -a "ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ''" -f 3 #自动生成本地known_hosts内容，远程机器则没有
+
+2）用ansible把所有机器的ssh的公钥copy到本地authorized_keys
+ansible dbs -m command -a 'cat /home/longer/.ssh/id_rsa.pub' 2>/dev/null -f 3|grep -v 'CHANGED' >> /home/longer/.ssh/authorized_keys 
+
+chmod 600 /home/longer/.ssh/authorized_keys 赋权600
+
+3)扫描个主机sshkey，追加到/home/longer/.ssh/known_hosts
+ ssh-keyscan dbnode-01,dbnode-02,dbnode-03 >> /home/longer/.ssh/known_hosts
+
+4）用ansible把本地的authorized_keys，known_hosts分发到其他机器上
+ansible dbs --limit '!dbnode-03'  -m copy -a 'src=/home/longer/.ssh/authorized_keys dest=/home/longer/.ssh/ mode=preserve' -f 2
+ansible dbs --limit '!dbnode-03'  -m copy -a 'src=/home/longer/.ssh/known_hosts dest=/home/longer/.ssh/ mode=preserve' -f 2
+
+ 
+【附】
+ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ''
+ansible dbs -m command -a "rm -rf /home/longer/.ssh"
+
+for host in dbnode-01 dbnode-02 dbnode-03
+do
+  ssh-keyscan $host >> /home/longer/.ssh/known_hosts
+done
